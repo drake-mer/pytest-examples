@@ -1,26 +1,32 @@
+import os
 import pytest
 
-from mock import MagicMock
+from unittest.mock import MagicMock
 from modA import modA
 
 
-# -- Fixture that will create data set before each test
-@pytest.fixture()
-def before_test_create_dataset(request):
-    with open('test1','w') as f :
-        f.write('hello1')
-        yield "coucou"
+@pytest.fixture(scope='function')
+def write_file(request):
+    """ This fixture creates a file with given request
+    as parameters (fname, text)"""
+    fname, text = request.params
+    with open(fname, 'w') as f :
+        f.write(text)
+    yield fname
+    os.remove(fname)
 
 
+@pytest.mark.parametrize('write_file', 
+        [("filename.txt", "Content\nTo\nWrite\n")],
+        indirect=True)
+def test_write_file(monkeypatch, write_file):
+    fname = write_file
+    with open(fname,'r') as f:
+        for line in f:
+            print(line)
 
-# -- Fixture that will remove data set after each test
-@pytest.fixture()
-def after_test_remove_dataset( request ):
-    def _remove_dataset():
-        pass
-    request.addfinalizer( _remove_dataset )
-    
-def test_modA_behaviour(monkeypatch,before_test_create_dataset):
+
+def test_modA_behaviour(monkeypatch, write_file):
     monkeypatch.setattr("modB.modB.B1",MagicMock(return_value = "x"))
     monkeypatch.setattr("modB.modB.B2",MagicMock(return_value = "x"))
     myobj=modA()
