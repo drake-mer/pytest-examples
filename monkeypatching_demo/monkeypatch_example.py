@@ -6,14 +6,18 @@ try:
 except ImportError:
     from mock import MagicMock
 
-# the things we are going to monkeypatch
-import module_to_monkeypatch
 
+
+class B():
+    def B1(self):
+        return "This string is, wouhou, going to be monkeypatched"
+    def B2(self):
+        return "This string is, wouhou, into modB class, staying"
 
 
 class A():
     def __init__(self):
-        self.b_obj = module_to_monkeypatch.B()
+        self.b_obj = B()
 
     def A1(self):
         return "Our A() type object, calling B.B1:" \
@@ -40,7 +44,7 @@ def test_monkeypatch(monkeypatch):
     # what is going on after monkeypatching ?
     print("After monkeypatching")
     mock_object = MagicMock( return_value = "You just have been monkeypatched. Please keep going" )
-    monkeypatch.setattr( "module_to_monkeypatch.B.B1", mock_object )
+    monkeypatch.setattr( B, "B1", mock_object )
     patched_object = A()
     patched_object.A1()  # must call module_to_monkeypatch.modB.B1 (which is actually monkeypatched)
     patched_object.A2()  # must call module_to_monkeypatch.modB.B2 (which the initial commited method)
