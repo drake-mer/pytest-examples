@@ -1,3 +1,11 @@
+# coding: utf-8
+"""
+Just Run:
+    `pytest monkeypatch_example.py`
+    
+to launch the test
+"""
+
 import pytest
 
 from os import linesep
