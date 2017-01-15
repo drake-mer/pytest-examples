@@ -16,11 +16,11 @@ class A():
         self.b_obj = module_to_monkeypatch.B()
 
     def A1(self):
-        return "Our A() type object, calling B.B1:"
+        return "Our A() type object, calling B.B1:" \
         + linesep + self.b_obj.B1()
 
     def A2(self):
-        return "Our A() object, calling B.B2:"
+        return "Our A() object, calling B.B2:" \
         + linesep + self.b_obj.B2()
 
 
