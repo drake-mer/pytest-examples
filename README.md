@@ -1,6 +1,6 @@
-# Content of this repository
+# Content of the repository
 
-The goal of this repository is to demonstrate some abilities of 
+This repository contains code snippets to demonstrate abilities and usual use of 
 the pytest framework.
 
 ## Demonstration of Fixture
