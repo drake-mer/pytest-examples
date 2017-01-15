@@ -1,35 +1,57 @@
-import os
 import pytest
 
-from unittest.mock import MagicMock
-from modA import modA
+from os import linesep
+try:
+    from unittest.mock import MagicMock
+except ImportError:
+    from mock import MagicMock
+
+# the things we are going to monkeypatch
+import to_monkeypatch
 
 
-@pytest.fixture(scope='function')
-def write_file(request):
-    """ This fixture creates a file with given request
-    as parameters (fname, text)"""
-    fname, text = request.params
-    with open(fname, 'w') as f :
-        f.write(text)
-    yield fname
-    os.remove(fname)
+
+class A():
+    def __init__(self):
+        self.b_obj = to_monkeypatch.B()
+
+    def A1(self):
+        return "Our A() type object, calling B.B1:"
+        + linesep + self.b_obj.B1()
+
+    def A2(self):
+        return "Our A() object, calling B.B2:"
+        + linesep + self.b_obj.B2()
 
 
-@pytest.mark.parametrize('write_file', 
-        [("filename.txt", "Content\nTo\nWrite\n")],
-        indirect=True)
-def test_write_file(monkeypatch, write_file):
-    fname = write_file
-    with open(fname,'r') as f:
-        for line in f:
-            print(line)
+
+def test_monkeypatch(monkeypatch):
+    """ Simple test function to demonstrate the monkeypatching process """
+
+    # Instanciate the objects we are going to use
+    tested_object = A()
+
+    # Use class methods before monkeypatching
+    print("Before monkeypatching")
+    print(tested_object.A1(),tested_object.A2())
 
 
-def test_modA_behaviour(monkeypatch, write_file):
-    monkeypatch.setattr("modB.modB.B1",MagicMock(return_value = "x"))
-    monkeypatch.setattr("modB.modB.B2",MagicMock(return_value = "x"))
-    myobj=modA()
-    assert before_test_create_dataset == "coucou"
-    assert myobj.A1()=="A1 x"
-    assert myobj.A2()=="A2 x"
+    # what is going on after monkeypatching ?
+    print("After monkeypatching")
+    mock_object = MagicMock( return_value = "You just have been monkeypatched. Please keep going" )
+    monkeypatch.setattr( "to_monkeypatch.B.B1", mock_object )
+
+    tested_object.A1()  # must call to_monkeypatch.modB.B1 (which is actually monkeypatched)
+    tested_object.A2()  # must call to_monkeypatch.modB.B2 (which the initial commited method)
+
+    assert mock_object.called is True
+    assert mock_object.call_count == 1
+
+    n_repeat = 10
+    for x in range(n_repeat):
+        my = tested_object.A1()
+
+    assert mock_object.call_count == 1 + n_repeat
+
+
+
