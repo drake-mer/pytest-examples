@@ -11,14 +11,14 @@ from pyftpdlib.filesystems import UnixFilesystem
 
 class DummyFTP(threading.Thread):
     """
-
+    DummyFTP server
     """
-    def set_params( self, addr, port, folder, user, password ):
-        self.addr = addr
-        self.port = port
-        self.folder = folder
-        self.user = user
-        self.password = password
+    def set_params( self, addr=None, port=None, folder=None, user=None, password=None ):
+        self.addr = 'localhost' if not addr else addr
+        self.port = '22122' if not port else port
+        self.folder = os.path.join(os.curdir) if not folder else folder
+        self.user = os.getenv('USER') if not user else user
+        self.password = '' if not password else password
         self.server = DummyFTP.ftp_server( addr, port, folder, user, password )
 
     def run(self):
@@ -27,67 +27,24 @@ class DummyFTP(threading.Thread):
         except AttributeError:
             print("Cannot run DummyFTP: you should call 'set_params' prior to running the FTP server")
 
+    def stop(self):
+        self.join()
+        self.server.stop()
+        
     @staticmethod
     def ftp_server(addr, port, folder, user, password):
         handler = FTPHandler
         handler.authorizer = DummyAuthorizer()
         handler.authorizer.add_user(user , password ,folder, perm='elradfmw')
         handler.abstracted_fs = UnixFilesystem
-        server = FTPServer( (addr, port), handler )
+        server = ThreadedFTPServer( (addr, port), handler )
         return server
 
-
-
-def ftp_server(addr, port, folder, user, password):
-    handler = FTPHandler
-    handler.authorizer = DummyAuthorizer()
-    handler.authorizer.add_user(user , password ,folder, perm='elradfmw')
-    handler.abstracted_fs = UnixFilesystem
-    server = FTPServer( (addr, port), handler )
-    return server
-
-
-def create_test_folder():
-    def random_dir_name():
-        len_name = 10
-        testDir = ''.join(('{',":0{}x".format(len_name),'}')).format(random.randint(0,16**len_name))
-        return testDir
-
-    userHome = os.getenv('HOME')
-    success = False
-    while True:
-        dirName = random_dir_name()
-        testFolder=os.path.join( userHome, dirName )
-        try:
-            os.mkdir( testFolder )
-        except:
-            print("folder {} already in use. Trying another one".format(dirName))
-        else:
-            return testFolder
-
-def remove_test_folder(folderName):
-    shutil.rmtree(folderName)
-
-def main():
-    # import pdb; pdb.set_trace()
-    test_folder = create_test_folder()
-    userName = os.getenv('USER')
-    IPAddr = "localhost"
-    password = "**********"
-    port = random.randint( 2**7, 2**16 )
-    server = ftp_server(IPAddr, port, test_folder, userName, password)
-    server.serve_forever()
-    import time; time.sleep(1)
-    server.close()
-    remove_test_folder( test_folder )
-
 if __name__=='__main__':
-    my = main()
-    print(my)
-
+    ftp_server = test()
 
 def test():
     my = DummyFTP()
-    my.set_params( 'localhost', 22222, '/home/david/test_ftp', 'david', '' )
+    my.set_params()
     my.start()
     return my
