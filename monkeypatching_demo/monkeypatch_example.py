@@ -18,9 +18,9 @@ except ImportError:
 
 class B():
     def B1(self):
-        return "This string is, wouhou, going to be monkeypatched"
+        return "This string is going to be monkeypatched"
     def B2(self):
-        return "This string is, wouhou, into modB class, staying"
+        return "This string is into modB class, staying"
 
 
 class A():
